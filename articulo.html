@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leyendo Artículo</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+    <!-- Menú de Navegación Fijo -->
+    <header id="main-header">
+        <nav class="navbar">
+            <div class="logo-container">
+                <a href="index.html" id="site-logo-text">App</a>
+            </div>
+            <ul id="menu-list" class="nav-links">
+                <!-- Se inyecta dinámicamente -->
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenido Principal del Artículo Individual -->
+    <main id="main-content">
+        <div class="back-link-container">
+            <a href="articulos.html" class="back-link">&larr; Volver a Artículos</a>
+        </div>
+
+        <article class="single-article" id="article-detail">
+            <header class="article-header">
+                <span class="article-meta" id="art-fecha">Cargando fecha...</span>
+                <h1 id="art-titulo">Cargando título...</h1>
+                <p class="article-author" id="art-autor"></p>
+            </header>
+
+            <div class="article-img-container" id="art-img-container" style="display: none;">
+                <img id="art-img" src="" alt="Imagen del artículo">
+            </div>
+
+            <div class="article-content" id="art-contenido">
+                <!-- El texto completo del artículo se inyecta aquí -->
+            </div>
+        </article>
+    </main>
+
+    <!-- Pie de página Fijo -->
+    <footer id="main-footer">
+        <p>&copy; 2026 - Diseñado con amor.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/articulos.js" defer></script>
+</body>
+</html>

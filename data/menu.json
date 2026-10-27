@@ -1,0 +1,22 @@
+[
+  {
+    "label": "Inicio",
+    "url": "index.html",
+    "active": true
+  },
+  {
+    "label": "Devocionales",
+    "url": "devocional.html",
+    "active": true
+  },
+  {
+    "label": "Artículos",
+    "url": "articulos.html",
+    "active": true
+  },
+  {
+    "label": "Editor",
+    "url": "editoras.html",
+    "active": true
+  }
+]

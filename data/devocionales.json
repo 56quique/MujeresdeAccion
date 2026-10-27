@@ -1,0 +1,35 @@
+{
+  "devocionalDelDia": {
+    "id": "dev-2026-10-27",
+    "fecha": "27 de Octubre, 2026",
+    "titulo": "Renovando las fuerzas en la Quietud",
+    "pasajeClave": "Isaías 40:31",
+    "versiculoTexto": "«Pero los que esperan en el Señor renovarán sus fuerzas; volarán con alas como las águilas; correrán y no se cansarán; caminarán y no se fatigarán.»",
+    "imagen": "img/hero.webp",
+    "reflexion": [
+      "En el ajetreo diario de la vida, a menudo intentamos resolver todo con nuestras propias fuerzas y recursos. Nos llenamos de tareas y responsabilidades hasta sentir que nuestro tanque de energía está completamente vacío.",
+      "La verdadera renovación no proviene de descansar únicamente el cuerpo, sino de reposar el corazón en la presencia de Dios. Cuando aprendemos a hacer una pausa activa para confiar en Él, nuestras perspectivas cambian y recobramos el impulso necesario para seguir adelante."
+    ],
+    "oracion": "Señor, hoy elijo pausar mi carrera diaria y poner mi confianza en ti. Renueva mis fuerzas y dame la sabiduría para caminar en paz en cada área de mi vida. Amén.",
+    "preguntasReflexion": [
+      "¿En qué área de tu vida sientes que estás actuando en tus propias fuerzas?",
+      "¿Qué espacio vas a separar hoy para descansar en Dios?"
+    ]
+  },
+  "historial": [
+    {
+      "id": "dev-2026-10-26",
+      "fecha": "26 de Octubre, 2026",
+      "titulo": "La Paz que Sobrepasa todo Entendimiento",
+      "pasajeClave": "Filipenses 4:6-7",
+      "resumen": "Cómo guardar nuestros pensamientos e inquietudes a través de la oración y la gratitud."
+    },
+    {
+      "id": "dev-2026-10-25",
+      "fecha": "25 de Octubre, 2026",
+      "titulo": "Un Corazón Agradecido",
+      "pasajeClave": "1 Tesalonicenses 5:18",
+      "resumen": "Descubriendo la bendición de dar gracias en medio de cualquier circunstancia."
+    }
+  ]
+}

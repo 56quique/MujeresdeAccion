@@ -1,0 +1,29 @@
+{
+  "articulos": [
+    {
+      "id": "creciendo-en-la-fe-diaria",
+      "titulo": "Creciendo en la fe a través de los pequeños detalles",
+      "fecha": "24 de Octubre, 2026",
+      "autor": "Administradora",
+      "extracto": "Descubre cómo los pequeños hábitos diarios transforman nuestra perspectiva espiritual y fortalecen nuestra relación con Dios.",
+      "imagen": "img/hero.webp",
+      "contenido": [
+        "A menudo pensamos que el crecimiento espiritual requiere grandes eventos o cambios drásticos en nuestra rutina. Sin embargo, la verdadera transformación ocurre en los pequeños detalles cotidianos.",
+        "Cuando dedicamos unos minutos por la mañana a agradecer, cuando decidimos responder con paciencia en un momento difícil o cuando guardamos silencio para escuchar una guía interior, estamos construyendo cimientos sólidos.",
+        "Te invitamos a examinar tu día de hoy y descubrir al menos tres pequeños momentos donde la presencia de paz se hizo evidente."
+      ]
+    },
+    {
+      "id": "el-poder-de-la-gratitud",
+      "titulo": "El poder transformador de un corazón agradecido",
+      "fecha": "18 de Octubre, 2026",
+      "autor": "Administradora",
+      "extracto": "La gratitud no es solo una reacción ante lo bueno, sino una actitud que cambia nuestra forma de afrontar los desafíos.",
+      "imagen": "img/hero.webp",
+      "contenido": [
+        "Practicar la gratitud de manera intencional altera de forma positiva nuestra química mental y nuestra disposición espiritual. Nos ayuda a desviar la mirada de lo que falta para valorar la abundancia de lo que ya tenemos.",
+        "Cuando el desánimo intente tocar a la puerta, prueba hacer una lista mental o escrita de pequeñas bendiciones cotidianas. Verás cómo el panorama cambia."
+      ]
+    }
+  ]
+}
