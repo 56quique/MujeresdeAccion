@@ -19,11 +19,17 @@
   }
 
   /* ---------- Hero ---------- */
+  /* Un color solo se aplica si es un hexadecimal válido (#RRGGBB); si no, queda el color original del diseño. */
+  function colorOk(c){return (typeof c==='string'&&/^#[0-9a-fA-F]{6}$/.test(c))?c:'';}
   function hero(h){
     h=h||{};
-    if(h.imagen) $('#hero-foto').style.backgroundImage='url("'+h.imagen+'")';
+    if(h.imagen) $('#hero-foto').style.backgroundImage='url("'+String(h.imagen).replace(/["\\]/g,'')+'")';
+    if(h.descripcion) $('#hero-foto').setAttribute('aria-label',String(h.descripcion));
     $('#hero-frase').textContent=h.frasePrincipal||'';
     $('#hero-sub').textContent=h.fraseSecundaria||'';
+    var c1=colorOk(h.colorPrincipal), c2=colorOk(h.colorSecundaria);
+    if(c1) $('#hero-frase').style.color=c1;
+    if(c2) $('#hero-sub').style.color=c2;
   }
 
   /* ---------- Tarjetas ---------- */
@@ -45,11 +51,12 @@
       '</div></article>';
   }
 
-  function tarjetas(test,devs){
+  function tarjetas(test,devs,cfg){
+    cfg=cfg||{};
     var html='';
     if(test) html+=tarjetaResumen({clase:'t-testimonio',etiqueta:test.etiqueta||'Testimonio',titulo:test.titulo||'Testimonio',imagen:test.imagen||'img/testimonio.webp',fuente:test,href:'testimonio.html'});
     var d=D.elegir(devs); estado.dev=d;
-    if(d) html+=tarjetaResumen({clase:'t-devocional',etiqueta:(d.fecha===D.hoyISO()?'Devocional de hoy':'Último devocional'),dev:d.fecha,fecha:D.fechaLarga(d.fecha),titulo:d.titulo,referencia:d.referencia,imagen:d.imagen||'img/devocional.webp',fuente:d,href:'devocional.html?fecha='+encodeURIComponent(d.fecha)});
+    if(d) html+=tarjetaResumen({clase:'t-devocional',etiqueta:(d.fecha===D.hoyISO()?'Devocional de hoy':'Último devocional'),dev:d.fecha,fecha:D.fechaLarga(d.fecha),titulo:d.titulo,referencia:d.referencia,imagen:d.imagen||(cfg.devocional&&cfg.devocional.imagen)||'img/devocional.webp',fuente:d,href:'devocional.html?fecha='+encodeURIComponent(d.fecha)});
     $('#tarjetas').innerHTML=html;
   }
 
@@ -164,7 +171,7 @@
       logo(cfg.logo); hero(cfg.hero);
       estado.arts=ok(r[3])||[];
       N.iniciar(estado.arts);
-      tarjetas(ok(r[1]),ok(r[2])); carrusel(cfg.categorias); destacado(estado.arts);
+      tarjetas(ok(r[1]),ok(r[2]),cfg); carrusel(cfg.categorias); destacado(estado.arts);
       $('#pie-texto').textContent='© '+new Date().getFullYear()+' '+((cfg.pie&&cfg.pie.texto)||'');
       refrescarAvisos();
       if(estado.primera){revelar();estado.primera=false;}

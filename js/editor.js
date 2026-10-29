@@ -3,7 +3,7 @@
   'use strict';
   var C=window.Comun, D=window.Devocional, GH=window.GH;
   var esc=C.esc, cont=document.getElementById('contenido');
-  var S={cfg:null,cats:[],arts:[],devs:[],mas:[],mes:[],recursos:[],testimonio:{},contacto:{},vista:'articulos'};
+  var S={cfg:null,cats:[],arts:[],devs:[],mas:[],mes:[],recursos:[],testimonio:{},contacto:{},conf:{},vista:'articulos'};
   var ED=null, LOTE=[];
   var BKEY='mda_borradores_v1';
 
@@ -234,9 +234,9 @@
   }
   function entrar(){
     cont.innerHTML='<p class="cargando">Cargando tus artículos…</p>';
-    return Promise.all([GH.leerJSON('data/articulos.json'),GH.leerJSON('data/devocionales.json'),GH.leerJSON('data/mas.json'),GH.leerJSON('data/mes.json'),GH.leerJSON('data/recursos.json'),GH.leerJSON('data/testimonio.json'),GH.leerJSON('data/contacto.json')]).then(function(r){
+    return Promise.all([GH.leerJSON('data/articulos.json'),GH.leerJSON('data/devocionales.json'),GH.leerJSON('data/mas.json'),GH.leerJSON('data/mes.json'),GH.leerJSON('data/recursos.json'),GH.leerJSON('data/testimonio.json'),GH.leerJSON('data/contacto.json'),GH.leerJSON('data/config.json')]).then(function(r){
       S.arts=Array.isArray(r[0].datos)?r[0].datos:[]; S.devs=Array.isArray(r[1].datos)?r[1].datos:[]; S.mas=Array.isArray(r[2].datos)?r[2].datos:[]; S.mes=Array.isArray(r[3].datos)?r[3].datos:[]; S.recursos=Array.isArray(r[4].datos)?r[4].datos:[];
-      S.testimonio=objeto(r[5].datos); S.contacto=objeto(r[6].datos);
+      S.testimonio=objeto(r[5].datos); S.contacto=objeto(r[6].datos); S.conf=objeto(r[7].datos);
       panel();
     }).catch(function(er){
       cont.innerHTML='<div class="error-carga">'+esc(GH.mensajeError(er))+'</div><p><button type="button" class="btn-sec" data-acc="salir">Salir</button></p>';
@@ -257,7 +257,7 @@
     }
     var alerta=(info.principal&&info.principal!==info.rama)?
       '<div class="ed-aviso" role="alert">⚠ El editor publica en la rama <strong>'+esc(info.rama)+'</strong>, pero la rama principal del repositorio es <strong>'+esc(info.principal)+'</strong>. Si la página se publica desde otra rama, no vas a ver los cambios. Revisá <code>rama</code> en <code>data/editor.json</code>.</div>':'';
-    var VISTAS=[['articulos','Artículos'],['devocionales','Devocionales'],['recursos','Recursos'],['mas','Más'],['testimonio','Testimonio'],['contacto','Contacto']];
+    var VISTAS=[['articulos','Artículos'],['devocionales','Devocionales'],['recursos','Recursos'],['mas','Más'],['testimonio','Testimonio'],['contacto','Contacto'],['apariencia','Apariencia']];
     cont.innerHTML='<div class="ed-barra"><h2>Panel de editoras</h2><button type="button" class="btn-sec peq" data-acc="salir">Salir</button></div>'+
       '<p class="nota ed-repo">Publicás en <a href="'+esc(repoUrl)+'" target="_blank" rel="noopener">'+esc(info.owner+'/'+info.repo)+'</a> · rama <strong>'+esc(info.rama)+'</strong>'+(S.detectado?' <span>(según la dirección de esta página)</span>':'')+'</p>'+alerta+confirmacion+
       '<div class="chips ed-chips">'+VISTAS.map(function(v){
@@ -265,7 +265,7 @@
       }).join('')+'</div>'+
       '<div id="ed-cuerpo"></div>';
     if(S.vista==='articulos') listaArticulos(); else if(S.vista==='mas') listaMas(); else if(S.vista==='recursos') listaRecursos();
-    else if(S.vista==='testimonio') listaTestimonio(); else if(S.vista==='contacto') listaContacto(); else listaDevocionales();
+    else if(S.vista==='testimonio') listaTestimonio(); else if(S.vista==='contacto') listaContacto(); else if(S.vista==='apariencia') listaApariencia(); else listaDevocionales();
   }
   /* Un archivo que guarda UN solo dato (testimonio, contacto) viene como objeto; si falta, GitHub lo da como lista vacía. */
   function objeto(d){return (d&&typeof d==='object'&&!Array.isArray(d))?d:{};}
@@ -847,6 +847,176 @@
     ED=E;
   }
 
+  /* ---------- Apariencia: imágenes y frases del inicio (se guardan en data/config.json) ---------- */
+  var CREMA='#fbf7f1', COLOR_ORIG='#3b3f45';
+  var PALETA=[['#3b3f45','Gris oscuro'],['#4f6b58','Verde'],['#a4524f','Rosa oscuro'],['#7d6a94','Lila'],['#000000','Negro']];
+  function hexOk(c){return typeof c==='string'&&/^#[0-9a-fA-F]{6}$/.test(c);}
+  function lum(h){var v=[1,3,5].map(function(i){var c=parseInt(h.substr(i,2),16)/255;return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);});return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2];}
+  function contraste(a,b){var x=lum(a),y=lum(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);}
+  /* De "img/hero.webp" saca "img/hero": la imagen nueva se guarda en la misma ruta (con la extensión que corresponda). */
+  function baseImg(ruta,defecto){var m=String(ruta||'').match(/^(img\/[^?#]+)\.(?:webp|jpe?g|png|gif|svg)$/i);return m?m[1]:defecto;}
+  function claveCat(c){return String((c&&c.href)||'').replace(/\.html.*$/,'').replace(/[^a-z0-9-]/gi,'')||slug(c&&c.nombre,30)||'categoria';}
+
+  function listaApariencia(){
+    var h=S.conf.hero||{}, cats=S.conf.categorias||[];
+    function rec(t,n){t=String(t||''); return t.length>n?t.slice(0,n)+'…':t;}
+    $('ed-cuerpo').innerHTML='<p class="nota">Acá cambiás cómo se ve el inicio de la app. Cada botón abre una pantalla para ese cambio.</p>'+
+      '<div class="lista">'+
+      item('1. Imagen principal (hero)','Foto grande de la portada',btn('Cambiar','ap-hero-img',''))+
+      item('2. Frase principal y su color',rec(h.frasePrincipal,70)+(hexOk(h.colorPrincipal)?' · color '+h.colorPrincipal:''),btn('Editar','ap-frase','data-k="principal"'))+
+      item('3. Frase secundaria y su color',rec(h.fraseSecundaria,70)+(hexOk(h.colorSecundaria)?' · color '+h.colorSecundaria:''),btn('Editar','ap-frase','data-k="secundaria"'))+
+      item('4. Imagen del devocional','Foto de la tarjeta de devocional del inicio',btn('Cambiar','ap-dev-img',''))+
+      item('5. Imágenes del carrusel',cats.map(function(c){return c.nombre;}).filter(Boolean).join(', ')||'Artículos, Recursos, Contacto y Más',btn('Cambiar','ap-cats',''))+
+      '</div>';
+  }
+
+  /* Editor de una o varias imágenes: se suben a img/ y se enlazan desde data/config.json.
+     o = {titulo, ayuda, slots:[{k,etiqueta,base,actual,max,calidad}], extraHtml, extraInit, extraLeer, aplicar(conf,rutas,extra), msg} */
+  function editorImagenes(o){
+    var E={ocupado:false,nuevas:{},sinBorrador:true};
+    cont.innerHTML='<form class="form ed-form" id="ed-form" novalidate><h2 class="ed-titulo">'+esc(o.titulo)+'</h2>'+
+      (o.ayuda?'<p class="nota">'+esc(o.ayuda)+'</p>':'')+
+      o.slots.map(function(sl,i){
+        return '<label for="i-file-'+i+'">'+esc(sl.etiqueta)+'</label><div class="ed-img" id="i-img-'+i+'"></div><input id="i-file-'+i+'" type="file" accept="image/*">';
+      }).join('')+
+      (o.extraHtml||'')+
+      '<div class="ed-final"><button type="button" class="btn-leer ancho" data-acc="e-publicar" id="e-pub">Publicar</button>'+
+      '<button type="button" class="enlace" data-acc="cancelar">Cancelar</button></div>'+
+      '<p class="nota ed-msg" id="ed-estado"></p></form>';
+    if(o.extraInit) o.extraInit();
+    function pintar(i){
+      var sl=o.slots[i], n=E.nuevas[sl.k], src=n?n.dataURL:sl.actual;
+      $('i-img-'+i).innerHTML=src?'<img src="'+esc(src)+'" alt="Imagen actual: '+esc(sl.etiqueta)+'" onerror="this.remove()">':'<p class="nota">Sin imagen.</p>';
+    }
+    function foto(){return Object.keys(E.nuevas).map(function(k){return k+':'+E.nuevas[k].dataURL.length;}).join(',')+'|'+(o.extraLeer?o.extraLeer():'');}
+    var base0=foto(); E.cambios=function(){return foto()!==base0;};
+    o.slots.forEach(function(sl,i){
+      pintar(i);
+      $('i-file-'+i).addEventListener('change',function(){
+        var f=this.files[0]; if(!f) return;
+        estado('Preparando la imagen…');
+        reducirImagen(f,sl.max,sl.calidad).then(function(r){E.nuevas[sl.k]=r;pintar(i);estado('');},function(er){estado(er.message,'error');});
+      });
+    });
+    E.publicar=async function(){
+      if(E.ocupado) return;
+      if(!E.cambios()) return estado('Todavía no hay nada para publicar. Elegí una imagen nueva.','error');
+      if(!confirm('¿Publicar el cambio ahora? Las lectoras lo van a ver en unos minutos.')) return;
+      var claves=Object.keys(E.nuevas), extra=o.extraLeer?o.extraLeer():undefined;
+      E.ocupado=true; $('e-pub').disabled=true; estado('Publicando… no cierres esta pantalla.');
+      try{
+        var rutas={}, hechas=0;
+        for(var i=0;i<o.slots.length;i++){
+          var sl=o.slots[i], n=E.nuevas[sl.k]; if(!n) continue;
+          var ruta=sl.base+'.'+n.ext; hechas++;
+          estado('Subiendo imagen '+hechas+' de '+claves.length+'…');
+          await GH.subir(ruta,n.blob,'Editor: '+o.msg+' ('+sl.etiqueta+')');
+          rutas[sl.k]=ruta;
+        }
+        estado('Guardando…');
+        S.conf=objeto(await GH.modificarJSON('data/config.json',function(c){c=Object.assign({},objeto(c)); o.aplicar(c,rutas,extra); return c;},'Editor: '+o.msg));
+        S.vista='apariencia'; panel(); C.aviso('Publicado. En un par de minutos lo verán las lectoras.');
+      }catch(er){
+        E.ocupado=false; if($('e-pub')) $('e-pub').disabled=false; estado(GH.mensajeError(er),'error');
+      }
+    };
+    ED=E;
+  }
+  function editorHeroImg(){
+    var h=S.conf.hero||{};
+    editorImagenes({
+      titulo:'Imagen principal (hero)',
+      ayuda:'Es la foto grande de la portada. Funciona mejor una foto vertical o cuadrada, con la persona del lado derecho, porque el texto se ve a la izquierda.',
+      slots:[{k:'hero',etiqueta:'Foto de la portada',base:baseImg(h.imagen,'img/hero'),actual:h.imagen||'',max:1400,calidad:0.85}],
+      extraHtml:'<label for="h-desc">Descripción de la foto (opcional)</label><input id="h-desc" type="text" maxlength="140">'+
+        '<p class="nota">Es para personas que usan lector de pantalla. Por ejemplo: “Mujer mirando el amanecer”.</p>',
+      extraInit:function(){$('h-desc').value=h.descripcion||'';},
+      extraLeer:function(){return $('h-desc').value.trim();},
+      aplicar:function(c,r,d){c.hero=Object.assign({},c.hero||{}); if(r.hero) c.hero.imagen=r.hero; if(d) c.hero.descripcion=d; else delete c.hero.descripcion;},
+      msg:'imagen principal del inicio'});
+  }
+  function editorDevImg(){
+    var d=S.conf.devocional||{};
+    editorImagenes({
+      titulo:'Imagen del devocional',
+      ayuda:'Es la foto de la tarjeta de devocional que se ve en el inicio. Funciona mejor cuadrada.',
+      slots:[{k:'dev',etiqueta:'Foto del devocional',base:baseImg(d.imagen,'img/devocional'),actual:d.imagen||'img/devocional.webp',max:900,calidad:0.85}],
+      aplicar:function(c,r){c.devocional=Object.assign({},c.devocional||{}); if(r.dev) c.devocional.imagen=r.dev;},
+      msg:'imagen del devocional'});
+  }
+  function editorCats(){
+    var cats=S.conf.categorias||[];
+    if(!cats.length) return C.aviso('No hay categorías en el carrusel.');
+    editorImagenes({
+      titulo:'Imágenes del carrusel',
+      ayuda:'Son las miniaturas de Artículos, Recursos, Contacto y Más en el inicio. Funcionan mejor apaisadas, de unos 400 × 300 px. Cambiá solo las que quieras.',
+      slots:cats.map(function(c,i){return {k:String(i),etiqueta:c.nombre||('Imagen '+(i+1)),base:baseImg(c.imagen,'img/categorias/'+claveCat(c)),actual:c.imagen||'',max:700,calidad:0.82};}),
+      aplicar:function(c,r){c.categorias=(c.categorias||[]).map(function(x,i){return r[String(i)]?Object.assign({},x,{imagen:r[String(i)]}):x;});},
+      msg:'imágenes del carrusel del inicio'});
+  }
+
+  /* Frase del inicio (principal o secundaria) con el color de la letra y vista previa */
+  function editorFrase(cual){
+    var esP=cual==='principal', h=S.conf.hero||{};
+    var campo=esP?'frasePrincipal':'fraseSecundaria', campoC=esP?'colorPrincipal':'colorSecundaria';
+    var MAXC=esP?160:420, bueno=esP?3:4.5;
+    var E={ocupado:false,sinBorrador:true,color:hexOk(h[campoC])?String(h[campoC]).toLowerCase():null};
+    cont.innerHTML='<form class="form ed-form" id="ed-form" novalidate>'+
+      '<h2 class="ed-titulo">'+(esP?'Frase principal':'Frase secundaria')+'</h2>'+
+      '<label for="f-texto">Texto</label><textarea id="f-texto" rows="'+(esP?3:7)+'" maxlength="'+MAXC+'"></textarea><p class="nota" id="f-cont"></p>'+
+      '<label for="f-color">Color de la letra</label>'+
+      '<div class="ed-color"><input id="f-color" type="color" aria-label="Elegir otro color"><div class="ed-paleta" id="f-paleta">'+
+        PALETA.map(function(p){return '<button type="button" class="ed-sw" data-color="'+p[0]+'" aria-label="'+esc(p[1])+'" title="'+esc(p[1])+'" style="background:'+p[0]+'"></button>';}).join('')+
+      '</div></div>'+
+      '<button type="button" class="enlace" data-orig="1">Usar el color original</button>'+
+      '<p class="nota" id="f-color-msg"></p>'+
+      '<label>Así se va a ver</label><div class="ed-prevhero"><p class="'+(esP?'pp':'ps')+'" id="f-prev"></p></div>'+
+      '<div class="ed-final"><button type="button" class="btn-leer ancho" data-acc="e-publicar" id="e-pub">Publicar</button>'+
+      '<button type="button" class="enlace" data-acc="cancelar">Cancelar</button></div>'+
+      '<p class="nota ed-msg" id="ed-estado"></p></form>';
+    $('f-texto').value=h[campo]||'';
+    function refrescar(){
+      var t=$('f-texto').value, col=E.color||COLOR_ORIG, r=contraste(col,CREMA), m;
+      $('f-cont').textContent=t.length+' de '+MAXC+' letras';
+      $('f-color').value=col;
+      var pv=$('f-prev'); pv.textContent=t||'(sin texto)'; pv.style.color=col;
+      if(r>=bueno) m='Se lee muy bien sobre el fondo claro.';
+      else if(r>=3) m='Se lee, pero para letra chica conviene un color más oscuro.';
+      else m='Ojo: este color casi no se ve sobre el fondo claro del inicio.';
+      $('f-color-msg').textContent=(E.color?'Color elegido: '+E.color+'. ':'Color original del diseño. ')+m;
+      Array.prototype.forEach.call(document.querySelectorAll('#f-paleta .ed-sw'),function(b){b.classList.toggle('on',b.getAttribute('data-color')===col);});
+    }
+    function foto(){return $('f-texto').value+'|'+(E.color||'');}
+    var base0=foto(); E.cambios=function(){return foto()!==base0;};
+    $('f-texto').addEventListener('input',refrescar);
+    $('f-color').addEventListener('input',function(){E.color=this.value.toLowerCase();refrescar();});
+    $('ed-form').addEventListener('click',function(e){
+      var sw=e.target.closest('[data-color]'); if(sw){E.color=sw.getAttribute('data-color');refrescar();return;}
+      if(e.target.closest('[data-orig]')){E.color=null;refrescar();}
+    });
+    refrescar();
+    E.publicar=async function(){
+      if(E.ocupado) return;
+      var t=$('f-texto').value.replace(/\s*\n\s*/g,' ').trim();
+      if(esP&&!t) return estado('Escribí la frase principal.','error');
+      if(!E.cambios()) return estado('Todavía no cambiaste nada.','error');
+      var poco=contraste(E.color||COLOR_ORIG,CREMA)<3;
+      if(!confirm(poco?'Ojo: ese color casi no se va a leer sobre el fondo claro. ¿Publicar igual?':'¿Publicar el cambio ahora? Las lectoras lo van a ver en unos minutos.')) return;
+      E.ocupado=true; $('e-pub').disabled=true; estado('Publicando… no cierres esta pantalla.');
+      try{
+        S.conf=objeto(await GH.modificarJSON('data/config.json',function(c){
+          c=Object.assign({},objeto(c)); c.hero=Object.assign({},c.hero||{});
+          c.hero[campo]=t; if(E.color) c.hero[campoC]=E.color; else delete c.hero[campoC];
+          return c;
+        },'Editor: '+(esP?'frase principal':'frase secundaria')+' del inicio'));
+        S.vista='apariencia'; panel(); C.aviso('Publicado. En un par de minutos lo verán las lectoras.');
+      }catch(er){
+        E.ocupado=false; if($('e-pub')) $('e-pub').disabled=false; estado(GH.mensajeError(er),'error');
+      }
+    };
+    ED=E;
+  }
+
   /* ---------- Introducción del mes ("Tema de noviembre", arriba en la pantalla Devocional) ---------- */
   function mesTexto(m){
     if(!fechaValida(String(m)+'-01')) return String(m);
@@ -972,6 +1142,10 @@
     'borra-rec':function(b){quitarRec(b.getAttribute('data-k'));},
     'edit-test':function(){editorTestimonio();},
     'edit-cont':function(){editorContacto();},
+    'ap-hero-img':function(){editorHeroImg();},
+    'ap-frase':function(b){editorFrase(b.getAttribute('data-k')==='secundaria'?'secundaria':'principal');},
+    'ap-dev-img':function(){editorDevImg();},
+    'ap-cats':function(){editorCats();},
     'nuevo-mes':function(){editorMes(null);},
     'edit-mes':function(b){var m=b.getAttribute('data-m'),x=S.mes.filter(function(y){return y.mes===m;})[0]; if(x) editorMes(x);},
     'borra-mes':function(b){quitarMes(b.getAttribute('data-m'));},
