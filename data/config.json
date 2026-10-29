@@ -8,8 +8,9 @@
   "hero": {
     "imagen": "img/hero.webp",
     "frasePrincipal": "“Una nueva oportunidad, algo diferente.”",
-    "fraseSecundaria": "Bienvenida a un lugar para encontrar inspiración, aprender de la Palabra de Dios y descubrir cómo vivir con propósito en cada área de tu vida. Quiero acompañarte en tu crecimiento y recordarte que tu historia todavía tiene mucho por florecer.",
-    "colorPrincipal": "#7d6a94"
+    "fraseSecundaria": "Bienvenida a un lugar para encontrar inspiración, dirección y amor.",
+    "colorPrincipal": "#7d6a94",
+    "colorSecundaria": "#a4524f"
   },
   "categorias": [
     {
