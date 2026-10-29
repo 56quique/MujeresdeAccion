@@ -1,0 +1,26 @@
+[
+  {
+    "titulo": "Vida saludable y coherente",
+    "descripcion": "Una vida verdaderamente fundada en lo que Dios quiere.",
+    "archivo": "pdf/Vida-saludable-y-coherente.pdf",
+    "tipo": "PDF"
+  },
+  {
+    "titulo": "Mi valor no depende de la opinion de los demas",
+    "descripcion": "Tu vida tiene el valor que Dios le asigno.",
+    "archivo": "pdf/Mi-valor-no-depende-de-la-opinion-de-los-demas.pdf",
+    "tipo": "PDF"
+  },
+  {
+    "titulo": "Familia edificada sobre la roca",
+    "descripcion": "Tu familia como Dios siempre quiso que sea.",
+    "archivo": "pdf/Familia-edificada-sobre-la-roca.pdf",
+    "tipo": "PDF"
+  },
+  {
+    "titulo": "Primeros pasos",
+    "descripcion": "Quien es Jesus.",
+    "archivo": "pdf/Primeros_pasos_1_Quien_es_Jesus.pdf",
+    "tipo": "PDF"
+  }
+]
