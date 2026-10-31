@@ -3,7 +3,7 @@
   'use strict';
   var C=window.Comun, D=window.Devocional, GH=window.GH;
   var esc=C.esc, cont=document.getElementById('contenido');
-  var S={cfg:null,cats:[],arts:[],devs:[],mas:[],mes:[],recursos:[],testimonio:{},contacto:{},conf:{},vista:'articulos'};
+  var S={cfg:null,cats:[],arts:[],devs:[],mas:[],mes:[],recursos:[],testimonio:{},contacto:{},conf:{},push:{},claveAvisos:'',vista:'articulos'};
   var ED=null, LOTE=[];
   var BKEY='mda_borradores_v1';
 
@@ -234,9 +234,9 @@
   }
   function entrar(){
     cont.innerHTML='<p class="cargando">Cargando tus artículos…</p>';
-    return Promise.all([GH.leerJSON('data/articulos.json'),GH.leerJSON('data/devocionales.json'),GH.leerJSON('data/mas.json'),GH.leerJSON('data/mes.json'),GH.leerJSON('data/recursos.json'),GH.leerJSON('data/testimonio.json'),GH.leerJSON('data/contacto.json'),GH.leerJSON('data/config.json')]).then(function(r){
+    return Promise.all([GH.leerJSON('data/articulos.json'),GH.leerJSON('data/devocionales.json'),GH.leerJSON('data/mas.json'),GH.leerJSON('data/mes.json'),GH.leerJSON('data/recursos.json'),GH.leerJSON('data/testimonio.json'),GH.leerJSON('data/contacto.json'),GH.leerJSON('data/config.json'),GH.leerJSON('data/push.json')]).then(function(r){
       S.arts=Array.isArray(r[0].datos)?r[0].datos:[]; S.devs=Array.isArray(r[1].datos)?r[1].datos:[]; S.mas=Array.isArray(r[2].datos)?r[2].datos:[]; S.mes=Array.isArray(r[3].datos)?r[3].datos:[]; S.recursos=Array.isArray(r[4].datos)?r[4].datos:[];
-      S.testimonio=objeto(r[5].datos); S.contacto=objeto(r[6].datos); S.conf=objeto(r[7].datos);
+      S.testimonio=objeto(r[5].datos); S.contacto=objeto(r[6].datos); S.conf=objeto(r[7].datos); S.push=objeto(r[8].datos);
       panel();
     }).catch(function(er){
       cont.innerHTML='<div class="error-carga">'+esc(GH.mensajeError(er))+'</div><p><button type="button" class="btn-sec" data-acc="salir">Salir</button></p>';
@@ -257,7 +257,7 @@
     }
     var alerta=(info.principal&&info.principal!==info.rama)?
       '<div class="ed-aviso" role="alert">⚠ El editor publica en la rama <strong>'+esc(info.rama)+'</strong>, pero la rama principal del repositorio es <strong>'+esc(info.principal)+'</strong>. Si la página se publica desde otra rama, no vas a ver los cambios. Revisá <code>rama</code> en <code>data/editor.json</code>.</div>':'';
-    var VISTAS=[['articulos','Artículos'],['devocionales','Devocionales'],['recursos','Recursos'],['mas','Más'],['testimonio','Testimonio'],['contacto','Contacto'],['apariencia','Apariencia']];
+    var VISTAS=[['articulos','Artículos'],['devocionales','Devocionales'],['recursos','Recursos'],['mas','Más'],['testimonio','Testimonio'],['contacto','Contacto'],['apariencia','Apariencia'],['avisos','Avisos']];
     cont.innerHTML='<div class="ed-barra"><h2>Panel de editoras</h2><button type="button" class="btn-sec peq" data-acc="salir">Salir</button></div>'+
       '<p class="nota ed-repo">Publicás en <a href="'+esc(repoUrl)+'" target="_blank" rel="noopener">'+esc(info.owner+'/'+info.repo)+'</a> · rama <strong>'+esc(info.rama)+'</strong>'+(S.detectado?' <span>(según la dirección de esta página)</span>':'')+'</p>'+alerta+confirmacion+
       '<div class="chips ed-chips">'+VISTAS.map(function(v){
@@ -265,7 +265,7 @@
       }).join('')+'</div>'+
       '<div id="ed-cuerpo"></div>';
     if(S.vista==='articulos') listaArticulos(); else if(S.vista==='mas') listaMas(); else if(S.vista==='recursos') listaRecursos();
-    else if(S.vista==='testimonio') listaTestimonio(); else if(S.vista==='contacto') listaContacto(); else if(S.vista==='apariencia') listaApariencia(); else listaDevocionales();
+    else if(S.vista==='testimonio') listaTestimonio(); else if(S.vista==='contacto') listaContacto(); else if(S.vista==='apariencia') listaApariencia(); else if(S.vista==='avisos') listaAvisos(); else listaDevocionales();
   }
   /* Un archivo que guarda UN solo dato (testimonio, contacto) viene como objeto; si falta, GitHub lo da como lista vacía. */
   function objeto(d){return (d&&typeof d==='object'&&!Array.isArray(d))?d:{};}
@@ -1017,6 +1017,152 @@
     ED=E;
   }
 
+  /* ---------- Avisos (notificaciones push): el servidor de avisos vive en Render ---------- */
+  var DESTINOS=[['','Inicio'],['devocional.html','Devocional de hoy'],['articulos.html','Artículos'],['recursos.html','Recursos'],['testimonio.html','Testimonio'],['contacto.html','Contacto'],['mas.html','Más']];
+  function urlServidor(t){t=String(t||'').trim().replace(/\/+$/,''); return (/^https:\/\/[^\s\/]+\.[^\s\/]+$/.test(t)||/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(t))?t:'';}
+  function claveVapidOk(t){return /^[A-Za-z0-9_-]{80,100}$/.test(String(t||'').trim());}
+  function pushOk(){return !!urlServidor(S.push.servidor)&&claveVapidOk(S.push.clavePublica);}
+  /* El servidor gratuito se duerme si no se usa; al abrir esta pestaña se lo despierta de a poco, sin esperar. */
+  function despertar(){try{fetch(urlServidor(S.push.servidor)+'/salud',{cache:'no-store'}).catch(function(){});}catch(e){}}
+  function llamarServidor(metodo,ruta,cuerpo,clave){
+    var ctl=window.AbortController?new AbortController():null, t=ctl&&setTimeout(function(){ctl.abort();},120000);
+    var h={'Content-Type':'application/json'}; if(clave) h.Authorization='Bearer '+clave;
+    return fetch(urlServidor(S.push.servidor)+ruta,{method:metodo,headers:h,body:cuerpo?JSON.stringify(cuerpo):undefined,signal:ctl?ctl.signal:undefined,cache:'no-store'})
+      .then(function(r){clearTimeout(t);return r.json().catch(function(){return {};}).then(function(j){return {ok:r.ok,status:r.status,j:j};});},function(e){clearTimeout(t);throw e;});
+  }
+  function textoErrorServidor(r){
+    if(r.status===401) return 'La clave de avisos no es correcta (es la que pusiste como CLAVE_ADMIN en Render).';
+    if(r.status===429) return (r.j&&r.j.error)||'Demasiados intentos. Esperá unos minutos.';
+    if(r.status===503) return 'El servidor todavía no está configurado en Render. Le falta: '+(((r.j&&r.j.faltan)||[]).join(', ')||'alguna variable')+'.';
+    return (r.j&&r.j.error)||('El servidor respondió con un error ('+r.status+').');
+  }
+  var SIN_CONEXION='No se pudo conectar con el servidor. Si estaba dormido, esperá un minuto y probá de nuevo; si sigue igual, revisá la dirección.';
+
+  function listaAvisos(){
+    var ok=pushOk(), host='';
+    try{host=new URL(S.push.servidor).host;}catch(e){}
+    if(ok) despertar();
+    $('ed-cuerpo').innerHTML='<p class="nota">Los avisos llegan como notificación al celular de las personas que los activaron desde la app.</p>'+
+      '<div class="lista">'+
+      (ok?item('Enviar un aviso','Llega a todas las personas que activaron los avisos',btn('Escribir','av-enviar','')):'')+
+      item(ok?'Servidor de avisos':'Conectar con el servidor de avisos',ok?host:'Falta cargar la dirección y la clave pública',btn(ok?'Ver / cambiar':'Configurar','av-config',''))+
+      '</div>';
+  }
+
+  function editorPushConfig(){
+    var E={ocupado:false,sinBorrador:true};
+    cont.innerHTML='<form class="form ed-form" id="ed-form" novalidate>'+
+      '<h2 class="ed-titulo">Servidor de avisos</h2>'+
+      '<p class="nota">Estos dos datos los obtenés al crear el servidor en Render y al generar las claves. No son secretos.</p>'+
+      '<label for="p-url">Dirección del servidor</label><input id="p-url" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://mujeres-avisos.onrender.com">'+
+      '<label for="p-clave">Clave pública (VAPID_PUBLIC)</label><textarea id="p-clave" rows="3" autocapitalize="off" spellcheck="false"></textarea>'+
+      '<div class="ed-final"><button type="button" class="btn-sec" data-acc="e-probar" style="grid-column:1/-1">Probar conexión</button>'+
+      '<button type="button" class="btn-leer ancho" data-acc="e-publicar" id="e-pub">Guardar</button>'+
+      '<button type="button" class="enlace" data-acc="cancelar">Cancelar</button></div>'+
+      '<p class="nota ed-msg" id="ed-estado"></p></form>';
+    $('p-url').value=S.push.servidor||''; $('p-clave').value=S.push.clavePublica||'';
+    function leer(){return {url:urlServidor($('p-url').value),clave:$('p-clave').value.replace(/\s+/g,'')};}
+    function foto(){return $('p-url').value.trim()+'|'+$('p-clave').value.trim();}
+    var base0=foto(); E.cambios=function(){return foto()!==base0;};
+    function validar(){
+      var v=leer();
+      if(!v.url){estado('La dirección tiene que empezar con https:// (por ejemplo https://mujeres-avisos.onrender.com).','error');return null;}
+      if(!claveVapidOk(v.clave)){estado('La clave pública no parece correcta: son unas 87 letras y números. Copiala de nuevo, completa.','error');return null;}
+      return v;
+    }
+    E.prueba=function(){
+      var v=validar(); if(!v) return;
+      estado('Conectando… si el servidor estaba dormido puede tardar hasta un minuto.');
+      var ctl=window.AbortController?new AbortController():null, t=ctl&&setTimeout(function(){ctl.abort();},120000);
+      fetch(v.url+'/salud',{cache:'no-store',signal:ctl?ctl.signal:undefined}).then(function(r){clearTimeout(t);return r.json();}).then(function(j){
+        if(j&&j.ok&&j.listo) estado('✓ Conexión correcta. El servidor está listo para enviar avisos.');
+        else if(j&&j.ok) estado('El servidor responde, pero le falta configurar: '+((j.faltan||[]).join(', ')||'alguna variable')+'. Completalo en Render (Environment).','error');
+        else estado(SIN_CONEXION,'error');
+      }).catch(function(){clearTimeout(t);estado(SIN_CONEXION,'error');});
+    };
+    E.publicar=async function(){
+      if(E.ocupado) return;
+      var v=validar(); if(!v) return;
+      if(!confirm('¿Guardar la conexión con el servidor de avisos?')) return;
+      E.ocupado=true; $('e-pub').disabled=true; estado('Guardando…');
+      try{
+        S.push=objeto(await GH.modificarJSON('data/push.json',function(o){o=Object.assign({},objeto(o)); o.servidor=v.url; o.clavePublica=v.clave; return o;},'Editor: configurar avisos'));
+        S.vista='avisos'; panel(); C.aviso('Guardado. Ya podés enviar avisos.');
+      }catch(er){E.ocupado=false; if($('e-pub')) $('e-pub').disabled=false; estado(GH.mensajeError(er),'error');}
+    };
+    ED=E;
+  }
+
+  function editorAviso(){
+    var E={ocupado:false,sinBorrador:true};
+    cont.innerHTML='<form class="form ed-form" id="ed-form" novalidate>'+
+      '<h2 class="ed-titulo">Enviar un aviso</h2>'+
+      '<label for="a-titulo">Título</label><input id="a-titulo" type="text" maxlength="60" placeholder="Ya está el devocional de hoy">'+
+      '<label for="a-msg">Mensaje</label><textarea id="a-msg" rows="3" maxlength="180" placeholder="Entrá y leelo con calma."></textarea><p class="nota" id="a-cont"></p>'+
+      '<label for="a-dest">Al tocarlo, abrir</label><select id="a-dest" class="ed-select">'+DESTINOS.map(function(d){return '<option value="'+esc(d[0])+'">'+esc(d[1])+'</option>';}).join('')+'</select>'+
+      '<label>Así se va a ver</label><div class="ed-notif"><strong id="a-pt"></strong><span id="a-pm"></span></div>'+
+      '<label for="a-clave">Clave de avisos</label><input id="a-clave" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">'+
+      '<p class="nota">Es la clave que pusiste como CLAVE_ADMIN en Render. Solo se usa para enviar y no se guarda.</p>'+
+      '<div class="ed-final"><button type="button" class="btn-sec" data-acc="e-comprobar" style="grid-column:1/-1">Comprobar conexión y cantidad de suscriptoras</button>'+
+      '<button type="button" class="btn-sec" data-acc="e-prueba" style="grid-column:1/-1">Enviarme una prueba a este celular</button>'+
+      '<button type="button" class="btn-leer ancho" data-acc="e-publicar" id="e-pub">Enviar a todas</button>'+
+      '<button type="button" class="enlace" data-acc="cancelar">Cancelar</button></div>'+
+      '<p class="nota ed-msg" id="ed-estado"></p></form>';
+    $('a-clave').value=S.claveAvisos||'';
+    function leer(){return {titulo:$('a-titulo').value.replace(/\s+/g,' ').trim(),mensaje:$('a-msg').value.replace(/\s+/g,' ').trim(),url:$('a-dest').value,clave:$('a-clave').value.trim()};}
+    function refrescar(){var v=leer(); $('a-cont').textContent=v.mensaje.length+' de 180 letras'; $('a-pt').textContent=v.titulo||'(sin título)'; $('a-pm').textContent=v.mensaje||'(sin mensaje)';}
+    ['a-titulo','a-msg'].forEach(function(id){$(id).addEventListener('input',refrescar);}); refrescar();
+    E.cambios=function(){var v=leer();return !!(v.titulo||v.mensaje);};
+    function datos(extra){
+      var v=leer();
+      if(!v.titulo||!v.mensaje){estado('Escribí el título y el mensaje.','error');return null;}
+      if(!v.clave){estado('Escribí la clave de avisos.','error');return null;}
+      S.claveAvisos=v.clave;
+      return {cuerpo:Object.assign({titulo:v.titulo,mensaje:v.mensaje,url:v.url},extra||{}),clave:v.clave};
+    }
+    function resumen(j){
+      if(!j.total) return j.aviso||'No había a quién enviarlo todavía.';
+      var t='✓ Enviado a '+j.enviadas+(j.enviadas===1?' persona.':' personas.');
+      if(j.fallidas) t+=' No se pudo enviar a '+j.fallidas+'.';
+      if(j.eliminadas) t+=' '+j.eliminadas+(j.eliminadas===1?' ya se había dado de baja.':' ya se habían dado de baja.');
+      return t;
+    }
+    function mandar(d,despues){
+      E.ocupado=true; $('e-pub').disabled=true;
+      estado('Enviando… si el servidor estaba dormido puede tardar hasta un minuto.');
+      llamarServidor('POST','/enviar',d.cuerpo,d.clave).then(function(r){
+        E.ocupado=false; if($('e-pub')) $('e-pub').disabled=false;
+        if(!r.ok) return estado(textoErrorServidor(r),'error');
+        estado(resumen(r.j)); if(despues) despues();
+      },function(){E.ocupado=false; if($('e-pub')) $('e-pub').disabled=false; estado(SIN_CONEXION,'error');});
+    }
+    E.publicar=function(){
+      if(E.ocupado) return;
+      var d=datos(); if(!d) return;
+      if(!confirm('¿Enviar este aviso a todas las personas que activaron los avisos? No se puede deshacer.')) return;
+      mandar(d,function(){$('a-titulo').value='';$('a-msg').value='';refrescar();});   // se vacía para no mandarlo dos veces sin querer
+    };
+    E.prueba=function(){
+      if(E.ocupado) return;
+      var d=datos(); if(!d) return;
+      if(!('serviceWorker' in navigator)||!('PushManager' in window)) return estado('Este celular o navegador no admite avisos.','error');
+      navigator.serviceWorker.ready.then(function(reg){return reg.pushManager.getSubscription();}).then(function(sub){
+        if(!sub) return estado('Este celular no tiene los avisos activados. Activalos desde el inicio de la app y probá de nuevo.','error');
+        d.cuerpo.solo=sub.endpoint; mandar(d);
+      }).catch(function(){estado('No se pudo revisar los avisos de este celular.','error');});
+    };
+    E.comprobar=function(){
+      var clave=$('a-clave').value.trim(); if(!clave) return estado('Escribí la clave de avisos.','error');
+      S.claveAvisos=clave; estado('Conectando… si el servidor estaba dormido puede tardar hasta un minuto.');
+      llamarServidor('GET','/diagnostico',null,clave).then(function(r){
+        if(!r.ok) return estado(textoErrorServidor(r),'error');
+        if(r.j.almacen!=='ok') return estado('El servidor responde, pero no puede guardar las suscripciones: '+String(r.j.almacen).replace(/^error:\s*/,'')+'. Revisá DATOS_TOKEN, DATOS_OWNER y DATOS_REPO en Render.','error');
+        estado('✓ Conexión correcta. Hay '+r.j.suscriptoras+(r.j.suscriptoras===1?' persona suscripta.':' personas suscriptas.'));
+      },function(){estado(SIN_CONEXION,'error');});
+    };
+    ED=E;
+  }
+
   /* ---------- Introducción del mes ("Tema de noviembre", arriba en la pantalla Devocional) ---------- */
   function mesTexto(m){
     if(!fechaValida(String(m)+'-01')) return String(m);
@@ -1146,6 +1292,11 @@
     'ap-frase':function(b){editorFrase(b.getAttribute('data-k')==='secundaria'?'secundaria':'principal');},
     'ap-dev-img':function(){editorDevImg();},
     'ap-cats':function(){editorCats();},
+    'av-enviar':function(){editorAviso();},
+    'av-config':function(){editorPushConfig();},
+    'e-probar':function(){if(ED&&ED.prueba) ED.prueba();},
+    'e-prueba':function(){if(ED&&ED.prueba) ED.prueba();},
+    'e-comprobar':function(){if(ED&&ED.comprobar) ED.comprobar();},
     'nuevo-mes':function(){editorMes(null);},
     'edit-mes':function(b){var m=b.getAttribute('data-m'),x=S.mes.filter(function(y){return y.mes===m;})[0]; if(x) editorMes(x);},
     'borra-mes':function(b){quitarMes(b.getAttribute('data-m'));},

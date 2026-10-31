@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Generar claves de avisos</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:640px;margin:0 auto;padding:20px;line-height:1.5;color:#3B3F45;background:#FBF7F1}
+  h1{font-size:1.4rem;margin:.2em 0}
+  button{font:inherit;font-weight:700;padding:.7em 1.2em;border:0;border-radius:999px;background:#4F6B58;color:#fff;cursor:pointer}
+  button.chico{padding:.4em .9em;font-size:.85rem;margin-top:6px}
+  label{display:block;margin:18px 0 4px;font-weight:700}
+  textarea{width:100%;box-sizing:border-box;padding:.7em;border:1.5px solid #D9D2C6;border-radius:12px;font:.8rem ui-monospace,monospace;background:#fff;resize:none}
+  .aviso{background:#F3DCD8;border-radius:12px;padding:12px 14px;font-size:.9rem;margin-top:12px}
+  .ok{background:#DCE5D8}
+  [hidden]{display:none}
+</style>
+</head>
+<body>
+<h1>Generar claves de avisos</h1>
+<p>Estas dos claves permiten que tu servidor envíe avisos a la app. Se crean <strong>en tu navegador</strong>: no se envían a ningún lado.</p>
+<button id="gen" type="button">Generar claves</button>
+<div id="res" hidden>
+  <label for="pub">Clave PÚBLICA (VAPID_PUBLIC)</label>
+  <textarea id="pub" rows="3" readonly></textarea>
+  <button class="chico" type="button" data-copiar="pub">Copiar</button>
+  <p>Esta va en <strong>Render</strong> y también en la app (Editoras → Avisos). No es secreta.</p>
+  <label for="priv">Clave PRIVADA (VAPID_PRIVATE)</label>
+  <textarea id="priv" rows="2" readonly></textarea>
+  <button class="chico" type="button" data-copiar="priv">Copiar</button>
+  <div class="aviso"><strong>Esta es secreta.</strong> Va solamente en Render. No la pegues en el chat, en un correo ni en GitHub. Guardala en un lugar seguro.</div>
+  <div class="aviso ok">Generala una sola vez. Si después la cambiás, todas las personas tendrán que volver a activar los avisos.</div>
+</div>
+<p id="err" class="aviso" hidden></p>
+<script>
+  function b64u(bytes){var s='';bytes.forEach(function(b){s+=String.fromCharCode(b);});return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+  function dec(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var r=atob(s),a=new Uint8Array(r.length);for(var i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;}
+  document.getElementById('gen').addEventListener('click',function(){
+    var err=document.getElementById('err'); err.hidden=true;
+    if(!window.crypto||!crypto.subtle){err.textContent='Este navegador no permite generar claves. Probá con Chrome o Firefox en una computadora.';err.hidden=false;return;}
+    crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign']).then(function(par){
+      return crypto.subtle.exportKey('jwk',par.privateKey);
+    }).then(function(jwk){
+      var pub=new Uint8Array(65); pub[0]=4; pub.set(dec(jwk.x),1); pub.set(dec(jwk.y),33);
+      document.getElementById('pub').value=b64u(pub);
+      document.getElementById('priv').value=jwk.d;
+      document.getElementById('res').hidden=false;
+    }).catch(function(e){err.textContent='No se pudieron generar las claves: '+e.message;err.hidden=false;});
+  });
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-copiar]'); if(!b) return;
+    var t=document.getElementById(b.getAttribute('data-copiar')); t.select();
+    (navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(function(){b.textContent='¡Copiada!';},function(){document.execCommand('copy');b.textContent='¡Copiada!';});
+    setTimeout(function(){b.textContent='Copiar';},1800);
+  });
+</script>
+</body>
+</html>

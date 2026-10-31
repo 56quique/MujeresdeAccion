@@ -9,7 +9,7 @@
    - Se limpian las copias viejas: las de versiones anteriores y las que sobran en la memoria del celular.
    Subí el número de VERSION solo cuando cambie ESTE archivo o la lista PRECARGA. Para publicar contenido
    (artículos, devocionales, imágenes, PDF) no hace falta tocar nada. */
-const VERSION = 'mda-v12';
+const VERSION = 'mda-v13';
 const BASE = VERSION + '-base';     // lo imprescindible para abrir la app sin internet
 const EXTRA = VERSION + '-extra';   // lo que se va viendo (imágenes, PDF, datos, etc.); se recorta solo
 const MAX_EXTRA = 100;              // cantidad máxima de archivos en EXTRA
@@ -20,7 +20,7 @@ const PRECARGA = [
   './', 'index.html', 'manifest.json',
   'articulos.html', 'articulo.html', 'devocional.html', 'testimonio.html', 'recursos.html', 'contacto.html', 'mas.html', 'editoras.html',
   'css/estilos.css',
-  'js/app.js', 'js/devocional.js', 'js/novedades.js', 'js/comun.js', 'js/paginas.js', 'js/github.js', 'js/editor.js',
+  'js/app.js', 'js/avisos.js', 'js/devocional.js', 'js/novedades.js', 'js/comun.js', 'js/paginas.js', 'js/github.js', 'js/editor.js',
   'icons/icon-192.png', 'icons/icon-512.png'
 ];
 /* El visor de PDF no se descarga al instalar (pesa más de 1 MB): se guarda la primera vez que se usa, pero en BASE para que no se recorte. */
@@ -129,4 +129,40 @@ self.addEventListener('fetch', e => {
   }
   if (HOSTS_FUENTES.includes(url.hostname)) return e.respondWith(copiaYActualiza(req));
   /* El resto (por ejemplo la API de GitHub del editor) pasa directo, sin guardarse nunca. */
+});
+
+/* ---------- Avisos (notificaciones push) ----------
+   El servidor de avisos manda un mensaje {titulo, mensaje, url}; acá se muestra como notificación.
+   Al tocarla se abre (o se trae al frente) la app en la página indicada. */
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { mensaje: e.data ? e.data.text() : '' }; }
+  const titulo = String(d.titulo || 'Mujeres de Acción').slice(0, 100);
+  const opciones = {
+    body: String(d.mensaje || '').slice(0, 300),
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    lang: 'es',
+    data: { url: String(d.url || '') }
+  };
+  e.waitUntil(self.registration.showNotification(titulo, opciones));
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const scope = self.registration.scope;
+  let destino = scope;
+  try {
+    const u = new URL((e.notification.data && e.notification.data.url) || scope, scope);
+    if (u.origin === self.location.origin) destino = u.href;   // solo páginas de la propia app
+  } catch (_) {}
+  e.waitUntil((async () => {
+    const abiertas = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of abiertas) {
+      if (c.url.startsWith(scope)) {
+        try { await c.focus(); if ('navigate' in c) await c.navigate(destino); return; } catch (_) {}
+      }
+    }
+    return clients.openWindow(destino);
+  })());
 });

@@ -313,3 +313,18 @@ img{max-width:100%}
 .ed-prevhero p{margin:0}
 .ed-prevhero .pp{font:500 1.5rem/1.14 var(--serif)}
 .ed-prevhero .ps{font-size:.95rem;line-height:1.5}
+
+/* Avisos (notificaciones): tarjeta del inicio */
+.avisos{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 8px 10px 16px;margin-bottom:14px;border-radius:18px;background:var(--lila);font-size:.85rem;color:var(--tinta)}
+.avisos p{margin:0;flex:1;min-width:160px}
+.avisos .btn-leer{margin:0;white-space:nowrap}
+.avisos .cerrar{background:none;border:0;font-size:1.5rem;line-height:1;color:var(--tinta);cursor:pointer;padding:2px 8px}
+.avisos-on{background:none;padding:0 4px;margin-bottom:8px;font-size:.8rem;color:var(--tinta-s)}
+.avisos-on .enlace{font-size:.8rem}
+.avisos-msg{width:100%;margin:0;font-size:.8rem;color:var(--tinta-s)}
+
+/* Avisos (Editoras): selector y vista previa de la notificación */
+.form select.ed-select{width:100%;padding:.7em .9em;border:1.5px solid #D9D2C6;border-radius:14px;background:#fff;font:inherit;color:var(--tinta)}
+.ed-notif{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid #E2D9CB;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.ed-notif strong{font-size:.9rem;overflow-wrap:anywhere}
+.ed-notif span{font-size:.82rem;color:var(--tinta-s);overflow-wrap:anywhere}

@@ -1,0 +1,28 @@
+SERVIDOR DE AVISOS (notificaciones) — Mujeres de Acción
+========================================================
+Esta carpeta NO es parte de la app que ven las lectoras: es el programa que corre en Render
+y se encarga de guardar quién activó los avisos y de enviárselos.
+
+Archivos
+  server.js            el servidor
+  package.json         lista de dependencias (Render la usa solo)
+  generar-claves.html  genera las claves VAPID en tu navegador (ábrelo con doble clic)
+
+En Render
+  Root Directory: servidor-avisos
+  Build Command:  npm install
+  Start Command:  npm start
+  Instance Type:  Free
+
+Variables de entorno (Render → tu servicio → Environment)
+  VAPID_PUBLIC     clave pública generada con generar-claves.html
+  VAPID_PRIVATE    clave privada (SECRETA)
+  VAPID_CONTACTO   mailto:tu-correo@ejemplo.com
+  CLAVE_ADMIN      una frase larga y secreta (mínimo 12 caracteres, mejor 20 o más)
+  SITIO_URL        https://56quique.github.io/MujeresdeAccion/
+  DATOS_TOKEN      llave de GitHub con permiso "Contents: Read and write" SOLO sobre el repo privado de datos
+  DATOS_OWNER      56quique
+  DATOS_REPO       el nombre del repo privado de datos (por ejemplo MujeresdeAccion-datos)
+
+Para ver si quedó bien, abrí  https://TU-SERVICIO.onrender.com/salud
+Tiene que decir:  {"ok":true,"listo":true,"faltan":[]}
