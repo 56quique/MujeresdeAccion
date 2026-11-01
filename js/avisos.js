@@ -34,11 +34,24 @@
         .then(function (r) {
           clearTimeout(t);
           if (r.ok) return r;
-          if (r.status >= 500 && intentos < 3) return espera(4000).then(una);
-          throw new Error('http ' + r.status);
+          return r.json().catch(function () { return {}; }).then(function (j) {
+            var er = new Error('http ' + r.status); er.estado = r.status; er.codigo = j.codigo || '';
+            if (r.status >= 500 && !er.codigo && intentos < 3) return espera(4000).then(una);   // el servidor gratuito despertando: se reintenta
+            throw er;
+          });
         }, function (e) { clearTimeout(t); if (intentos < 3) return espera(4000).then(una); throw e; });
     }
     return una();
+  }
+
+  /* Mensaje según en qué paso falló, con un código corto para poder avisar a las editoras. */
+  function explicar(e) {
+    if (e && e.etapa === 'navegador') {
+      return 'Tu navegador no pudo registrar los avisos (código: ' + (e.nombre || 'navegador') + ').' +
+        (navigator.brave ? ' Si usás Brave: en brave://settings/privacy activá “Usar Google Services para mensajería push”.' : '');
+    }
+    if (e && e.estado) return 'El servidor de avisos no pudo registrarte en este momento (código: ' + (e.codigo || e.estado) + '). Probá más tarde.';
+    return 'No se pudo conectar con el servidor de avisos. Revisá tu conexión y probá de nuevo en un rato (código: red).';
   }
 
   function pintar(sub) {
@@ -66,7 +79,9 @@
       return reg.pushManager.getSubscription().then(function (s) {
         if (s && !mismaClave(s)) return s.unsubscribe().then(function () { return null; });
         return s;
-      }).then(function (s) { return s || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: claveBytes(CFG.clave) }); });
+      }).then(function (s) {
+        return s || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: claveBytes(CFG.clave) }).catch(function (e) { throw { etapa: 'navegador', nombre: (e && e.name) || 'error' }; });
+      });
     }).then(function (sub) {
       return post('/suscribir', { suscripcion: sub.toJSON() }).then(function () { return sub; }, function (e) {
         return sub.unsubscribe().catch(function () {}).then(function () { throw e; });   // si el servidor no la registró, no queda a medias
@@ -75,7 +90,7 @@
       ls(K_SYNC, String(Date.now())); pintar(sub); toast('Listo, vas a recibir avisos.');
     }).catch(function (e) {
       boton.disabled = false;
-      if (e !== 'cancel') msg('No se pudieron activar los avisos. Revisá tu conexión y probá de nuevo en un rato.');
+      if (e !== 'cancel') msg(explicar(e));
     });
   }
 

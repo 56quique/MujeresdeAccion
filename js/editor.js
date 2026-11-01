@@ -1033,6 +1033,7 @@
   function textoErrorServidor(r){
     if(r.status===401) return 'La clave de avisos no es correcta (es la que pusiste como CLAVE_ADMIN en Render).';
     if(r.status===429) return (r.j&&r.j.error)||'Demasiados intentos. Esperá unos minutos.';
+    if(r.j&&r.j.codigo==='almacen') return 'El servidor no puede leer o guardar las suscripciones. Tocá “Comprobar conexión y cantidad de suscriptoras”: te dice el motivo exacto.';
     if(r.status===503) return 'El servidor todavía no está configurado en Render. Le falta: '+(((r.j&&r.j.faltan)||[]).join(', ')||'alguna variable')+'.';
     return (r.j&&r.j.error)||('El servidor respondió con un error ('+r.status+').');
   }

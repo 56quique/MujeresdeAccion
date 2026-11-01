@@ -57,8 +57,8 @@ function suscripcionValida(s) {
 const almacen = (() => {
   let lista = [], sha = null, cargado = false, cola = Promise.resolve();
   const enc = encodeURIComponent;
-  function llamar(metodo, cuerpo) {
-    const url = `${GH.api}/repos/${enc(GH.owner)}/${enc(GH.repo)}/contents/${GH.ruta}` + (metodo === 'GET' ? `?ref=${enc(GH.rama)}` : '');
+  function llamar(metodo, cuerpo, ruta = GH.ruta) {
+    const url = `${GH.api}/repos/${enc(GH.owner)}/${enc(GH.repo)}/contents/${ruta}` + (metodo === 'GET' ? `?ref=${enc(GH.rama)}` : '');
     return fetch(url, {
       method: metodo,
       headers: Object.assign({ Authorization: 'Bearer ' + GH.token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'mda-avisos' }, cuerpo ? { 'Content-Type': 'application/json' } : {}),
@@ -66,10 +66,44 @@ const almacen = (() => {
       signal: AbortSignal.timeout(25000)
     });
   }
+  function errAlmacen(msg) { const e = new Error(msg); e.almacen = true; return e; }
+  const TXT_TOKEN = 'GitHub rechazó la llave DATOS_TOKEN (¿venció o está mal copiada?)';
+  async function cuerpoCorto(r) { try { return (await r.text()).replace(/\s+/g, ' ').slice(0, 140); } catch (_) { return ''; } }
+  async function conGitHub(fn) {
+    try { return await fn(); }
+    catch (e) { if (e && e.almacen) throw e; throw errAlmacen('No se pudo conectar con GitHub (' + (e && e.name || 'error') + ')'); }
+  }
+  async function falloEscritura(r) {
+    console.error('[avisos] GitHub no dejó guardar (' + r.status + '): ' + await cuerpoCorto(r));
+    if (r.status === 401) throw errAlmacen(TXT_TOKEN);
+    if (r.status === 403) throw errAlmacen('La llave DATOS_TOKEN no puede escribir en el repositorio de datos: falta el permiso "Contents: Read and write"');
+    if (r.status === 404) throw errAlmacen('No se pudo escribir en ' + GH.owner + '/' + GH.repo + ' (¿la llave no incluye ese repositorio?)');
+    throw errAlmacen('No se pudo guardar en GitHub (' + r.status + ')');
+  }
+  /* Comprobación completa para el panel de Editoras: lee, y escribe un archivito de prueba (comprobacion.txt). */
+  async function probar() {
+    await cargar();
+    const RUTA = 'comprobacion.txt';
+    const g = await conGitHub(() => llamar('GET', null, RUTA));
+    let sh = null;
+    if (g.ok) sh = (await g.json()).sha; else if (g.status !== 404) await falloEscritura(g);
+    const c = { message: 'Avisos: comprobación de escritura', branch: GH.rama, content: Buffer.from(new Date().toISOString()).toString('base64') };
+    if (sh) c.sha = sh;
+    const r = await conGitHub(() => llamar('PUT', c, RUTA));
+    if (!r.ok) await falloEscritura(r);
+  }
   async function cargar() {
-    const r = await llamar('GET');
-    if (r.status === 404) { lista = []; sha = null; cargado = true; return; }
-    if (!r.ok) throw new Error('GitHub respondió ' + r.status + (r.status === 401 || r.status === 403 ? ' (revisá la llave DATOS_TOKEN)' : ''));
+    const r = await conGitHub(() => llamar('GET'));
+    if (r.status === 404) {
+      /* 404 puede ser "el archivo todavía no existe" (normal la primera vez) o "no encuentro el repo / no tengo acceso" (error). Se distingue mirando el repo. */
+      const rr = await conGitHub(() => fetch(`${GH.api}/repos/${enc(GH.owner)}/${enc(GH.repo)}`, { headers: { Authorization: 'Bearer ' + GH.token, Accept: 'application/vnd.github+json', 'User-Agent': 'mda-avisos' }, signal: AbortSignal.timeout(25000) }));
+      if (rr.status === 401) throw errAlmacen(TXT_TOKEN);
+      if (rr.status === 404) throw errAlmacen('No encuentro el repositorio ' + GH.owner + '/' + GH.repo + ' o la llave no tiene acceso a él (revisá DATOS_OWNER, DATOS_REPO y que la llave incluya ese repositorio)');
+      lista = []; sha = null; cargado = true; return;
+    }
+    if (r.status === 401) throw errAlmacen(TXT_TOKEN);
+    if (r.status === 403) throw errAlmacen('La llave DATOS_TOKEN no tiene permiso para leer el repositorio de datos');
+    if (!r.ok) throw errAlmacen('GitHub respondió ' + r.status);
     const j = await r.json();
     let d = {}; try { d = JSON.parse(Buffer.from(j.content || '', 'base64').toString('utf8')); } catch (_) {}
     lista = Array.isArray(d.suscripciones) ? d.suscripciones.filter(s => s && typeof s.endpoint === 'string' && s.keys) : [];
@@ -87,18 +121,19 @@ const almacen = (() => {
       for (let intento = 0; intento < 2; intento++) {
         const res = fn(lista.slice());
         if (!res.cambio) return res.valor;
-        const r = await llamar('PUT', contenido(res.lista));
+        const r = await conGitHub(() => llamar('PUT', contenido(res.lista)));
         if (r.ok) { const j = await r.json(); sha = (j.content && j.content.sha) || sha; lista = res.lista; return res.valor; }
         if ((r.status === 409 || r.status === 422) && intento === 0) { await cargar(); continue; }   // alguien tocó el archivo: se vuelve a leer y se reintenta
         cargado = false;
-        throw new Error('No se pudo guardar en GitHub (' + r.status + ')');
+        await falloEscritura(r);
       }
     });
     cola = p.catch(() => {});
     return p;
   }
+  function comprobar() { const p = cola.then(probar); cola = p.catch(() => {}); return p; }
   function leer(fn) { const p = cola.then(async () => { if (!cargado) await cargar(); return fn(lista); }); cola = p.catch(() => {}); return p; }
-  return { operar, leer };
+  return { operar, leer, comprobar };
 })();
 
 /* ---------- Utilidades HTTP ---------- */
@@ -204,7 +239,7 @@ async function manejar(req, res) {
     if (!esAdmin(req)) { anotar(kIp, VENT); anotar('a:*', VENT); return responder(res, 401, { error: 'Clave incorrecta.' }, cors); }
     if (req.method === 'POST' && ruta === '/enviar') return enviarAvisos(req, res, cors);
     if (req.method === 'GET' && ruta === '/diagnostico') {
-      try { const n = await almacen.leer(l => l.length); return responder(res, 200, { suscriptoras: n, almacen: 'ok' }, cors); }
+      try { await almacen.comprobar(); const n = await almacen.leer(l => l.length); return responder(res, 200, { suscriptoras: n, almacen: 'ok' }, cors); }
       catch (e) { return responder(res, 200, { suscriptoras: null, almacen: 'error: ' + e.message }, cors); }
     }
   }
@@ -213,6 +248,11 @@ async function manejar(req, res) {
 
 http.createServer((req, res) => {
   manejar(req, res).catch(e => {
+    if (e && e.almacen) {
+      console.error('[avisos] almacén: ' + e.message);
+      if (!res.headersSent) return responder(res, 500, { error: 'El servidor no pudo guardar la suscripción.', codigo: 'almacen' }, req.headers.origin && ORIGENES_OK.has(req.headers.origin) ? { 'Access-Control-Allow-Origin': req.headers.origin, Vary: 'Origin' } : {});
+      return res.end();
+    }
     const estado = e && e.estado ? e.estado : 500;
     if (estado === 500) console.error('[avisos] error:', e && e.message);
     if (!res.headersSent) responder(res, estado, { error: estado === 413 ? 'Pedido demasiado grande.' : estado === 400 ? 'Pedido mal formado.' : 'Error del servidor. Probá de nuevo.' });
