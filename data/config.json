@@ -7,9 +7,9 @@
   },
   "hero": {
     "imagen": "img/hero.webp",
-    "frasePrincipal": "“Con una mujer no se discute.”",
+    "frasePrincipal": "“Una vida con propósito comienza desde adentro.\"",
     "fraseSecundaria": "Bienvenida a un lugar donde nos podemos juntar y hablar y hablar como cotorras.",
-    "colorPrincipal": "#7d6a94",
+    "colorPrincipal": "#3b3f45",
     "colorSecundaria": "#a4524f"
   },
   "categorias": [
