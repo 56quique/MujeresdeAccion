@@ -63,8 +63,13 @@
       caja.innerHTML = '<div class="avisos avisos-on"><p>' + CAMPANA + '<span>Avisos activados</span></p><button type="button" class="enlace" data-avisos="off">Desactivar</button></div>';
       return;
     }
-    var c = parseInt(ls(K_CERRADO), 10) || 0;
-    if (c && Date.now() - c < 14 * DIA) { caja.innerHTML = ''; return; }
+    /* Si la persona cerró el cartel o desactivó los avisos, queda una línea chica para poder activarlos cuando quiera. */
+    if (parseInt(ls(K_CERRADO), 10)) {
+      caja.innerHTML = '<div class="avisos avisos-on avisos-off"><p>' + CAMPANA + '<span>Avisos sin activar</span></p>' +
+        '<button type="button" class="enlace" data-avisos="on">Activar</button>' +
+        '<p class="avisos-msg" id="avisos-msg" role="status" aria-live="polite"></p></div>';
+      return;
+    }
     caja.innerHTML = '<div class="avisos"><p>Te avisamos cuando haya un devocional o contenido nuevo.</p>' +
       '<button type="button" class="btn-leer" data-avisos="on">Activar avisos</button>' +
       '<button type="button" class="cerrar" data-avisos="cerrar" aria-label="Cerrar">×</button>' +
@@ -90,7 +95,7 @@
         return sub.unsubscribe().catch(function () {}).then(function () { throw e; });   // si el servidor no la registró, no queda a medias
       });
     }).then(function (sub) {
-      ls(K_SYNC, String(Date.now())); pintar(sub); toast('Listo, vas a recibir avisos.');
+      ls(K_SYNC, String(Date.now())); ls(K_CERRADO, ''); pintar(sub); toast('Listo, vas a recibir avisos.');
     }).catch(function (e) {
       boton.disabled = false;
       if (e !== 'cancel') msg(explicar(e));
@@ -110,7 +115,7 @@
     var a = b.getAttribute('data-avisos');
     if (a === 'on') activar(b);
     else if (a === 'off') desactivar();
-    else if (a === 'cerrar') { ls(K_CERRADO, String(Date.now())); caja.innerHTML = ''; }
+    else if (a === 'cerrar') { ls(K_CERRADO, String(Date.now())); pintar(null); }
   });
 
   if (!soportado()) return;   // por ejemplo iPhone en una pestaña de Safari: los avisos solo funcionan con la app instalada

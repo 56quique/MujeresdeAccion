@@ -332,3 +332,5 @@ img{max-width:100%}
 /* Campanita de "Avisos activados": sólida y de un solo color (lavanda). Para rosa, cambiar por var(--rosa-t). */
 .avisos-on p{display:flex;align-items:center;gap:7px}
 .campana{width:19px;height:19px;flex:none;color:var(--lila-t)}
+.avisos-off .campana{opacity:.55}
+.avisos-on .avisos-msg{display:block;flex:none;width:100%}
