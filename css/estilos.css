@@ -328,3 +328,7 @@ img{max-width:100%}
 .ed-notif{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid #E2D9CB;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .ed-notif strong{font-size:.9rem;overflow-wrap:anywhere}
 .ed-notif span{font-size:.82rem;color:var(--tinta-s);overflow-wrap:anywhere}
+
+/* Campanita de "Avisos activados": sólida y de un solo color (lavanda). Para rosa, cambiar por var(--rosa-t). */
+.avisos-on p{display:flex;align-items:center;gap:7px}
+.campana{width:19px;height:19px;flex:none;color:var(--lila-t)}

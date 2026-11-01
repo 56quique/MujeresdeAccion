@@ -9,7 +9,7 @@
    - Se limpian las copias viejas: las de versiones anteriores y las que sobran en la memoria del celular.
    Subí el número de VERSION solo cuando cambie ESTE archivo o la lista PRECARGA. Para publicar contenido
    (artículos, devocionales, imágenes, PDF) no hace falta tocar nada. */
-const VERSION = 'mda-v13';
+const VERSION = 'mda-v14';
 const BASE = VERSION + '-base';     // lo imprescindible para abrir la app sin internet
 const EXTRA = VERSION + '-extra';   // lo que se va viendo (imágenes, PDF, datos, etc.); se recorta solo
 const MAX_EXTRA = 100;              // cantidad máxima de archivos en EXTRA
@@ -21,7 +21,7 @@ const PRECARGA = [
   'articulos.html', 'articulo.html', 'devocional.html', 'testimonio.html', 'recursos.html', 'contacto.html', 'mas.html', 'editoras.html',
   'css/estilos.css',
   'js/app.js', 'js/avisos.js', 'js/devocional.js', 'js/novedades.js', 'js/comun.js', 'js/paginas.js', 'js/github.js', 'js/editor.js',
-  'icons/icon-192.png', 'icons/icon-512.png'
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/badge-96.png'
 ];
 /* El visor de PDF no se descarga al instalar (pesa más de 1 MB): se guarda la primera vez que se usa, pero en BASE para que no se recorte. */
 const TARDIAS = ['js/vendor/pdf.esm.min.js', 'js/vendor/pdf.worker.esm.min.js'];
@@ -140,8 +140,8 @@ self.addEventListener('push', e => {
   const titulo = String(d.titulo || 'Mujeres de Acción').slice(0, 100);
   const opciones = {
     body: String(d.mensaje || '').slice(0, 300),
-    icon: 'icons/icon-192.png',
-    badge: 'icons/icon-192.png',
+    icon: 'icons/icon-192.png',          // ícono a color: se ve dentro de la notificación
+    badge: 'icons/badge-96.png',         // silueta de una sola tinta: es la que Android muestra en la barra superior del celular
     lang: 'es',
     data: { url: String(d.url || '') }
   };

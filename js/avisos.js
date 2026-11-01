@@ -54,10 +54,13 @@
     return 'No se pudo conectar con el servidor de avisos. Revisá tu conexión y probá de nuevo en un rato (código: red).';
   }
 
+  /* Campanita sólida (una sola tinta): el color se cambia en el CSS, en .campana. */
+  var CAMPANA = '<svg class="campana" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm7-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a2.5 2.5 0 0 0-5 0v.68C6.63 5.36 5 7.92 5 11v5l-2 2v1h18v-1l-2-2z"/></svg>';
+
   function pintar(sub) {
     if (Notification.permission === 'denied') { caja.innerHTML = ''; return; }
     if (sub) {
-      caja.innerHTML = '<div class="avisos avisos-on"><p>🔔 Avisos activados</p><button type="button" class="enlace" data-avisos="off">Desactivar</button></div>';
+      caja.innerHTML = '<div class="avisos avisos-on"><p>' + CAMPANA + '<span>Avisos activados</span></p><button type="button" class="enlace" data-avisos="off">Desactivar</button></div>';
       return;
     }
     var c = parseInt(ls(K_CERRADO), 10) || 0;
