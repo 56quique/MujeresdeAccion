@@ -334,3 +334,9 @@ img{max-width:100%}
 .campana{width:19px;height:19px;flex:none;color:var(--lila-t)}
 .avisos-off .campana{opacity:.55}
 .avisos-on .avisos-msg{display:block;flex:none;width:100%}
+
+/* Compartir el devocional por WhatsApp */
+.compartir{margin:22px 0 4px;display:flex;justify-content:center}
+.btn-wa{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:.75em 1.5em;border-radius:999px;background:#178A46;color:#fff;font:700 .95rem var(--sans);text-decoration:none;box-shadow:0 2px 8px rgba(23,138,70,.25)}
+.btn-wa:hover,.btn-wa:focus-visible{background:#126f38;color:#fff}
+.btn-wa svg{flex:none}
