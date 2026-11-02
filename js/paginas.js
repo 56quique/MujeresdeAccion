@@ -85,6 +85,32 @@
       '<button type="button" class="btn-leer" data-tema aria-expanded="false">Leer más</button></section>';
   }
 
+  /* ---------- Compartir el devocional por WhatsApp (como texto) ---------- */
+  /*WA-INI*/
+  var ICO_WA='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
+  /* Dirección de la app (la carpeta donde está publicada), tomada de donde se está abriendo. */
+  function urlApp(){ return new URL('.',location.href).href; }
+  /* Convierte una línea al formato de WhatsApp: *negrita* y _cursiva_ (no admiten saltos de línea dentro). */
+  function wa(marca,t){ t=String(t).trim(); return t?marca+t+marca:''; }
+  function textoWhatsApp(el,etiqueta){
+    var sinAst=function(t){return String(t).replace(/\*/g,'');};
+    var out=['\uD83C\uDF3F *'+sinAst(etiqueta)+(fechaTxt(el.fecha)?' · '+fechaTxt(el.fecha):'')+'*','','*'+sinAst(el.titulo)+'*'];
+    if(el.referencia) out.push(wa('_',sinAst(el.referencia)));
+    out.push('');
+    C.lista(el).forEach(function(b){
+      b=sinAst(b);
+      if(/^##\s+/.test(b)) out.push(wa('*',b.replace(/^##\s+/,'')));
+      else if(/^>\s+/.test(b)) out.push(b.replace(/^>\s+/,'').split(/\n/).map(function(l){return wa('_',l);}).join('\n'));
+      else out.push(b.trim());
+      out.push('');
+    });
+    out.push('\uD83D\uDCF2 Obtené la app Mujeres de Acción:');
+    out.push(urlApp());
+    return out.join('\n');
+  }
+  function enlaceWhatsApp(texto){ return 'https://wa.me/?text='+encodeURIComponent(texto); }
+  /*WA-FIN*/
+
   function pDevocional(){
     Promise.all([C.get('data/devocionales.json'),C.get('data/articulos.json').catch(function(){return [];}),
       fetch('data/mes.json',{cache:'no-cache'}).then(function(x){return x.ok?x.json():[];}).catch(function(){return [];})]).then(function(r){
@@ -106,6 +132,7 @@
         '<h2>'+esc(el.titulo)+'</h2>'+
         (el.referencia?'<p class="referencia">'+esc(el.referencia)+'</p>':'')+
         '<div class="cuerpo">'+C.bloques(texto)+'</div>'+
+        '<div class="compartir"><a class="btn-wa" target="_blank" rel="noopener" href="'+esc(enlaceWhatsApp(textoWhatsApp(el,el.fecha===hoy?'Devocional de hoy':'Devocional')))+'">'+ICO_WA+'<span>Compartir por WhatsApp</span></a></div>'+
         '<div class="nav-lect">'+
           (ant?'<a class="btn-sec" href="devocional.html?fecha='+encodeURIComponent(ant.fecha)+'">‹ Anterior</a>':'<span></span>')+
           (sig?'<a class="btn-sec" href="devocional.html?fecha='+encodeURIComponent(sig.fecha)+'">Siguiente ›</a>':'<span></span>')+
