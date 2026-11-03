@@ -1,5 +1,23 @@
 [
   {
+    "id": "amar-tambien-significa-aprender-a-escuchar",
+    "titulo": "Amar también significa aprender a escuchar",
+    "categoria": "Amor y vínculos",
+    "resumen": "¿Alguna vez quisiste contarle algo importante a alguien y sentiste que no te estaba escuchando? Tal vez necesitabas hablar de algo que te preocupaba, compartir una…",
+    "fecha": "2026-11-03",
+    "parrafos": [
+      "¿Alguna vez quisiste contarle algo importante a alguien y sentiste que no te estaba escuchando? Tal vez necesitabas hablar de algo que te preocupaba, compartir una alegría o simplemente expresar cómo te sentías, pero la otra persona estaba distraída, cambió de tema o respondió rápidamente sin intentar comprender lo que querías decir.",
+      "También puede sucedernos a nosotras. A veces estamos tan concentradas en lo que queremos responder, en explicar nuestro punto de vista o en dar una solución, que no nos detenemos realmente a escuchar a quien tenemos delante.",
+      "Escuchar parece algo sencillo, pero no siempre lo hacemos de la manera que una buena relación necesita.\nEn la familia, en la pareja y en las amistades, muchas dificultades no comienzan necesariamente por falta de amor, sino porque dejamos de prestar atención a lo que el otro intenta comunicarnos. Podemos compartir una misma casa, conversar todos los días y, sin embargo, no conocer verdaderamente lo que está pasando en el corazón de quienes nos rodean.",
+      "Escuchar no significa simplemente permanecer en silencio mientras alguien habla. Significa prestar atención, intentar comprender lo que la otra persona está expresando y darle un espacio para compartir sus pensamientos y sentimientos sin apresurarnos a juzgarla.\nPor ejemplo, cuando un hijo nos cuenta un problema, quizás nuestra primera reacción sea corregirlo o decirle qué debería haber hecho. Sin embargo, antes de aconsejarlo, puede necesitar que lo escuchemos y que intentemos comprender cómo está viviendo esa situación.",
+      "En la pareja también sucede. A veces una conversación termina convirtiéndose en una discusión porque ambos están más preocupados por defender sus propias razones que por comprender lo que el otro está intentando decir.\nAprender a escuchar no significa estar siempre de acuerdo, aceptar cualquier comportamiento o renunciar a expresar lo que pensamos. Significa reconocer que la otra persona también tiene algo que decir y que sus sentimientos y experiencias merecen ser tratados con respeto.",
+      "La Palabra de Dios nos enseña que nuestra manera de relacionarnos con los demás también debe reflejar sabiduría, paciencia y amor. No alcanza con hablar de amor si nuestras palabras y actitudes no permiten que quienes nos rodean se sientan valorados.\nSantiago 1:19\nEn este pasaje, Santiago nos enseña a ser prontas para escuchar, lentas para hablar y lentas para enojarnos. Es una enseñanza breve, pero muy importante para nuestras relaciones.\nMuchas veces queremos que los demás comprendan lo que sentimos, pero nos cuesta ofrecerles la misma atención. Queremos ser escuchadas, pero interrumpimos; esperamos comprensión, pero respondemos con enojo; pedimos paciencia, pero no siempre estamos dispuestas a tenerla.\nLa enseñanza bíblica nos invita a revisar también nuestra propia manera de relacionarnos. Antes de responder, podemos detenernos un momento, escuchar con atención y pensar si nuestras palabras ayudarán a construir o terminarán lastimando.\nQuerida mujer, aprender a escuchar es también una manera de demostrar amor. No siempre tendremos las respuestas correctas ni podremos solucionar los problemas de quienes queremos, pero podemos ofrecer algo muy valioso: nuestra atención, nuestro tiempo y una disposición sincera para comprender.\nQuizás haya alguien en tu familia, en tu pareja o en tu círculo de amistades que necesite que lo escuches de verdad. Y quizás vos también necesites encontrar un espacio donde puedas expresarte sin sentirte juzgada.\nLos vínculos se fortalecen cuando ambas personas pueden hablar y ser escuchadas. No se trata de tener siempre la razón, sino de aprender a construir relaciones donde exista respeto, comprensión y disposición para acercarse al otro.\nUna pequeña decisión para esta semana\nElegí una conversación en la que puedas poner en práctica lo que aprendiste.\n•\tPresta atención: cuando alguien te hable, intenta dejar de lado las distracciones y escuchar sin interrumpir.\n•\tIntenta comprender: antes de responder, pregúntate qué está tratando de expresar esa persona y cómo puede estar sintiéndose.\n•\tCuida tus palabras: no te apresures a juzgar, corregir o defenderte. Piensa cómo responder con respeto y consideración.\nTambién podés preguntarte: ¿Estoy ofreciendo a los demás la misma atención que espero recibir de ellos?\nNo necesitas transformar todas tus relaciones de un día para otro. Comienza por una conversación, una actitud y una decisión concreta.\nOración\nSeñor, enséñame a escuchar con paciencia y con un corazón dispuesto a comprender. Ayúdame a no apresurarme a responder ni a juzgar a los demás sin conocer lo que están viviendo. Mostradme cómo puedo expresar mis pensamientos con amor y respeto, y ayúdame a reconocer cuándo mis palabras o actitudes pueden lastimar. Que mis relaciones reflejen tu amor y que pueda ser una persona que escucha, comprende y acompaña. En el nombre de Jesús. Amén."
+    ],
+    "versiculo": "Recuerden esto, queridos hermanos: todos ustedes deben estar listos para escuchar; en cambio deben ser lentos para hablar y para enojarse. Santiago 1:19",
+    "imagen": "img/articulos/amar-tambien-significa-aprender-a-escuchar.webp",
+    "destacado": true
+  },
+  {
     "id": "no-tengo-que-seguir-siendo-la-misma",
     "titulo": "No tengo que seguir siendo la misma",
     "categoria": "Mi mundo interior",
@@ -24,8 +42,7 @@
       "Oración: Padre, quiero que transformes mi manera de pensar y de vivir. Ayudame a reconocer aquello que necesito cambiar y dame sabiduría para responder conforme a tu Palabra. Enseñame a perseverar, aun cuando el proceso sea difícil, y a confiar en tu dirección cada día. Que mi vida refleje cada vez más tu voluntad. En el nombre de Jesús. Amén."
     ],
     "versiculo": "Romanos 12:2",
-    "imagen": "img/articulos/no-tengo-que-seguir-siendo-la-misma.webp",
-    "destacado": true
+    "imagen": "img/articulos/no-tengo-que-seguir-siendo-la-misma.webp"
   },
   {
     "id": "lo-que-hay-en-mi-corazon-tambien-importa",
